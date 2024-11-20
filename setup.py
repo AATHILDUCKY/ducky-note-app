@@ -3,24 +3,27 @@ from setuptools import setup, find_packages
 setup(
     name="ducky-notes",
     version="1.0.0",
-    description="A simple note-taking application with a Tkinter GUI.",
     author="Aathil Ducky",
     author_email="aathilducky@gmail.com",
-    url="https://github.com/AATHILDUCKY/ducky-note-app",  # Your GitHub repo or project URL
+    description="A simple note-taking app for ethical hackers to store, organize, and quickly access commands and important notes efficiently.",
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    url="https://github.com/AATHILDUCKY/ducky-note-app",
     packages=find_packages(),
-    include_package_data=True,
+    include_package_data=True,  # Includes files specified in MANIFEST.in
     install_requires=[
-        "tkinter",
+        "PyQt5",
+        "sqlite3"
     ],
-    entry_points={
-        "console_scripts": [
-            "note-app=note_app.app:main",
-        ],
-    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.7",
+    entry_points={
+        "console_scripts": [
+            "notetakingapp=notetakingapp.app:main",  # Add main entry point
+        ],
+    },
 )
