@@ -203,9 +203,9 @@ class NoteApp(QMainWindow):
 
     def search_notes(self):
         keywords = self.search_entry.text().strip()
+        self.clear_results_layout()
+
         if not keywords:
-            self.results_layout.deleteLater()
-            self.results_layout = QVBoxLayout(self.results_container)
             return
 
         keywords_list = [kw.strip().lower() for kw in keywords.split(",")]
@@ -213,34 +213,31 @@ class NoteApp(QMainWindow):
         cursor.execute("SELECT id, title, content, keywords FROM notes")
         results = cursor.fetchall()
 
-        # Clear previous results
-        for i in reversed(range(self.results_layout.count())):
-            widget = self.results_layout.itemAt(i).widget()
-            if widget:
-                widget.deleteLater()
-
         for note_id, title, content, note_keywords in results:
             note_keywords_list = [kw.strip().lower() for kw in note_keywords.split(",")]
             if all(any(kw in db_kw for db_kw in note_keywords_list) for kw in keywords_list):
                 self.display_result(note_id, title, content)
 
+    
     def display_result(self, note_id, title, content):
         result_frame = QFrame()
         result_frame.setStyleSheet("background-color: #2E2E2E; border: 1px solid #555555; padding: 10px;")
         result_layout = QVBoxLayout(result_frame)
 
+        # Display the title
         title_label = QLabel(title)
         title_label.setFont(QFont("Arial", 14, QFont.Bold))
         title_label.setStyleSheet("color: #FFA500;")
         result_layout.addWidget(title_label)
 
-        escaped_content = escape(content)
+        # Display the content directly as-is, ensuring it's in plain text format
         content_text = QTextEdit()
         content_text.setFont(QFont("Consolas", 12))
-        content_text.setText(escaped_content)
+        content_text.setPlainText(content)  # Display content as plain text
         content_text.setReadOnly(True)
         result_layout.addWidget(content_text)
 
+        # Add a delete button
         delete_button = QPushButton("Delete")
         delete_button.setFont(QFont("Arial", 8))
         delete_button.setFixedSize(100, 40)
@@ -266,6 +263,9 @@ class NoteApp(QMainWindow):
 
         self.results_layout.addWidget(result_frame)
 
+
+
+
     def delete_note(self, note_id, result_frame):
         confirm = QMessageBox.question(self, "Confirm Delete", "Are you sure you want to delete this note?")
         if confirm == QMessageBox.Yes:
@@ -278,6 +278,12 @@ class NoteApp(QMainWindow):
     def clear_content_frame(self):
         for i in reversed(range(self.content_frame.count())):
             widget = self.content_frame.itemAt(i).widget()
+            if widget:
+                widget.deleteLater()
+
+    def clear_results_layout(self):
+        for i in reversed(range(self.results_layout.count())):
+            widget = self.results_layout.itemAt(i).widget()
             if widget:
                 widget.deleteLater()
 
