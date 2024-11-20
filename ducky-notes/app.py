@@ -1,43 +1,110 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
+import sys
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QLineEdit, QPushButton, QLabel, QTextEdit, QScrollArea, QFrame,
+    QMessageBox
+)
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
+from html import escape
 import sqlite3
 
 
-class NoteApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Note-Taking App")
-        self.root.geometry("1050x700")
-        self.root.configure(bg="#FFA500")  # Orange theme
+class NoteApp(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Note-Taking App")
+        self.setGeometry(100, 100, 1050, 700)
 
         # SQLite database setup
         self.conn = sqlite3.connect("notes.db")
         self.create_table()
 
-        # Top Navigation
-        self.nav_frame = ttk.Frame(self.root, style="NavFrame.TFrame")
-        self.nav_frame.pack(side="top", fill="x", pady=10)
+        # Central Widget
+        self.central_widget = QWidget(self)
+        self.setCentralWidget(self.central_widget)
+        self.main_layout = QVBoxLayout(self.central_widget)
 
-        style = ttk.Style()
-        style.configure("NavButton.TButton", font=("Arial", 12, "bold"), padding=10, background="#FFA500")
-        style.map("NavButton.TButton", background=[("active", "#FF8C00")])
+        # Navigation Bar
+        self.nav_bar = QHBoxLayout()
+        self.main_layout.addLayout(self.nav_bar)
 
-        self.search_btn = ttk.Button(self.nav_frame, text="Search Notes", command=self.show_search_section, style="NavButton.TButton")
-        self.search_btn.pack(side="left", padx=20)
+        self.insert_btn = QPushButton("Insert Notes")
+        self.insert_btn.setFont(QFont("Arial", 12, QFont.Bold))
+        self.insert_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ed750c;
+                border-radius: 7px;
+                color: #FFFFFF;
+                border: 1px solid #006400;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: #f5cc84;
+                color: black;
+            }
+        """)
+        self.insert_btn.clicked.connect(self.show_insert_section)
+        self.nav_bar.addWidget(self.insert_btn)
 
-        self.insert_btn = ttk.Button(self.nav_frame, text="Insert Notes", command=self.show_insert_section, style="NavButton.TButton")
-        self.insert_btn.pack(side="left", padx=20)
-
+        self.search_btn = QPushButton("Search Notes")
+        self.search_btn.setFont(QFont("Arial", 12, QFont.Bold))
+        self.search_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ed750c;
+                border-radius: 7px;
+                color: #FFFFFF;
+                border: 1px solid #006400;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: #f5cc84;
+                color: black;
+            }
+        """)
+        self.search_btn.clicked.connect(self.show_search_section)
+        self.nav_bar.addWidget(self.search_btn)
 
         # Content Section
-        self.content_frame = ttk.Frame(self.root, style="ContentFrame.TFrame")
-        self.content_frame.pack(fill="both", expand=True)
+        self.content_frame = QVBoxLayout()
+        self.main_layout.addLayout(self.content_frame)
 
-        style = ttk.Style()
-        style.configure("ContentFrame.TFrame", background="#FFD580")  # Light orange theme
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #1E1E1E;
+            }
+            QLabel {
+                color: #FFFFFF;
+                padding:3px;
+            }
+            QLineEdit, QTextEdit {
+                background-color: #2E2E2E;
+                color: white;
+                border: 1px solid gray;
+                padding: 5px;
+            }
+            QPushButton {
+                background-color: #3E3E3E;
+                color: #FFFFFF;
+                border: 1px solid #555555;
+                padding: 5px;
+            }
+            QPushButton:hover {
+                background-color: #505050;
+            }
+            QPushButton:pressed {
+                background-color: #1E1E1E;
+            }
+            QScrollArea {
+                background-color: #1E1E1E;
+            }
+            QFrame {
+                background-color: #2E2E2E;
+                border: 1px solid #555555;
+            }
+        """)
 
         self.show_search_section()
-
 
     def create_table(self):
         cursor = self.conn.cursor()
@@ -52,64 +119,93 @@ class NoteApp:
         self.conn.commit()
 
     def show_insert_section(self):
-        for widget in self.content_frame.winfo_children():
-            widget.destroy()
+        self.clear_content_frame()
 
-        ttk.Label(self.content_frame, text="Title:", font=("Arial", 14), background="#FFD580", foreground="black").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-        self.title_entry = ttk.Entry(self.content_frame, width=80)
-        self.title_entry.grid(row=0, column=1, padx=10, pady=10)
+        title_label = QLabel("Title:")
+        title_label.setFont(QFont("Arial", 13))
+        self.content_frame.addWidget(title_label)
 
-        ttk.Label(self.content_frame, text="Keywords (comma-separated):", font=("Arial", 14), background="#FFD580", foreground="black").grid(row=1, column=0, padx=10, pady=10, sticky="w")
-        self.keywords_entry = ttk.Entry(self.content_frame, width=80)
-        self.keywords_entry.grid(row=1, column=1, padx=10, pady=10)
+        self.title_entry = QLineEdit()
+        self.title_entry.setFont(QFont("Consolas", 12))
+        self.title_entry.setPlaceholderText("Enter the title...")
+        self.content_frame.addWidget(self.title_entry)
 
-        ttk.Label(self.content_frame, text="Content:", font=("Arial", 14), background="#FFD580", foreground="black").grid(row=2, column=0, padx=10, pady=10, sticky="nw")
-        self.content_text = tk.Text(self.content_frame, width=80, height=20, font=("Consolas", 12))
-        self.content_text.grid(row=2, column=1, padx=10, pady=10)
+        keywords_label = QLabel("Keywords (comma-separated):")
+        keywords_label.setFont(QFont("Arial", 13))
+        self.content_frame.addWidget(keywords_label)
 
-        self.insert_btn = ttk.Button(self.content_frame, text="Insert Note", command=self.insert_note, style="InsertButton.TButton")
-        style = ttk.Style()
-        style.configure("InsertButton.TButton", font=("Arial", 14, "bold"), padding=10, background="#FFA500")
-        style.map("InsertButton.TButton", background=[("active", "#FF8C00")])
-        self.insert_btn.grid(row=3, column=1, padx=10, pady=20, sticky="e")
+        self.keywords_entry = QLineEdit()
+        self.keywords_entry.setFont(QFont("Consolas", 12))
+        self.keywords_entry.setPlaceholderText("Enter keywords...")
+        self.content_frame.addWidget(self.keywords_entry)
 
+        content_label = QLabel("Content:")
+        content_label.setFont(QFont("Arial", 13))
+        self.content_frame.addWidget(content_label)
+
+        self.content_text = QTextEdit()
+        self.content_text.setFont(QFont("Consolas", 12))
+        self.content_frame.addWidget(self.content_text)
+
+        insert_button = QPushButton("Insert Note")
+        insert_button.setFont(QFont("Arial", 14, QFont.Bold))
+        insert_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                padding: 10px;
+                border-radius:8px;
+            }
+            QPushButton:hover {
+                background-color: #45A049;
+            }
+        """)
+        insert_button.clicked.connect(self.insert_note)
+        self.content_frame.addWidget(insert_button)
 
     def insert_note(self):
-        title = self.title_entry.get().strip()
-        keywords = self.keywords_entry.get().strip()
-        content = self.content_text.get("1.0", tk.END).strip()
+        title = self.title_entry.text().strip()
+        keywords = self.keywords_entry.text().strip()
+        content = self.content_text.toPlainText().strip()
 
         if not title or not keywords or not content:
-            messagebox.showerror("Error", "All fields are required!")
+            QMessageBox.warning(self, "Error", "All fields are required!")
             return
 
         cursor = self.conn.cursor()
         cursor.execute("INSERT INTO notes (title, keywords, content) VALUES (?, ?, ?)", (title, keywords, content))
         self.conn.commit()
-        messagebox.showinfo("Success", "Note inserted successfully!")
-        self.title_entry.delete(0, tk.END)
-        self.keywords_entry.delete(0, tk.END)
-        self.content_text.delete("1.0", tk.END)
+        QMessageBox.information(self, "Success", "Note inserted successfully!")
+        self.title_entry.clear()
+        self.keywords_entry.clear()
+        self.content_text.clear()
 
     def show_search_section(self):
-        for widget in self.content_frame.winfo_children():
-            widget.destroy()
+        self.clear_content_frame()
 
-        ttk.Label(self.content_frame, text="Search Keywords (comma-separated):", background="#FFA500",foreground="white").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-        self.search_entry = ttk.Entry(self.content_frame, width=80)
-        self.search_entry.grid(row=0, column=1, padx=10, pady=10)
-        self.search_entry.bind("<KeyRelease>", self.search_notes)
+        search_label = QLabel("Search Keywords (comma-separated):")
+        search_label.setFont(QFont("Arial", 14))
+        self.content_frame.addWidget(search_label)
 
-        self.results_frame = ttk.Frame(self.content_frame)
-        self.results_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+        self.search_entry = QLineEdit()
+        self.search_entry.setFont(QFont("Consolas", 12))
+        self.search_entry.setPlaceholderText("Type keywords to search...")
+        self.search_entry.textChanged.connect(self.search_notes)
+        self.content_frame.addWidget(self.search_entry)
 
-    
-    def search_notes(self, event=None):
-        keywords = self.search_entry.get().strip()
-        for widget in self.results_frame.winfo_children():
-            widget.destroy()
+        # Scrollable results section
+        self.results_scroll = QScrollArea()
+        self.results_scroll.setWidgetResizable(True)
+        self.results_container = QWidget()
+        self.results_layout = QVBoxLayout(self.results_container)
+        self.results_scroll.setWidget(self.results_container)
+        self.content_frame.addWidget(self.results_scroll)
 
+    def search_notes(self):
+        keywords = self.search_entry.text().strip()
         if not keywords:
+            self.results_layout.deleteLater()
+            self.results_layout = QVBoxLayout(self.results_container)
             return
 
         keywords_list = [kw.strip().lower() for kw in keywords.split(",")]
@@ -117,40 +213,77 @@ class NoteApp:
         cursor.execute("SELECT id, title, content, keywords FROM notes")
         results = cursor.fetchall()
 
+        # Clear previous results
+        for i in reversed(range(self.results_layout.count())):
+            widget = self.results_layout.itemAt(i).widget()
+            if widget:
+                widget.deleteLater()
+
         for note_id, title, content, note_keywords in results:
             note_keywords_list = [kw.strip().lower() for kw in note_keywords.split(",")]
-        
-            # Check for partial matches
             if all(any(kw in db_kw for db_kw in note_keywords_list) for kw in keywords_list):
                 self.display_result(note_id, title, content)
 
     def display_result(self, note_id, title, content):
-        result_frame = ttk.Frame(self.results_frame, relief="solid", borderwidth=1)
-        result_frame.pack(fill="x", padx=5, pady=5, expand=True)
+        result_frame = QFrame()
+        result_frame.setStyleSheet("background-color: #2E2E2E; border: 1px solid #555555; padding: 10px;")
+        result_layout = QVBoxLayout(result_frame)
 
-        ttk.Label(result_frame, text=title, font=("Arial", 14, "bold"), background="white").pack(
-            side="top", anchor="w", padx=5, pady=5)
-        content_text = tk.Text(result_frame, height=10,wrap="word", font=("Consolas", 12), background="#FFF8DC", borderwidth=0)
-        content_text.insert("1.0", content)
-        content_text.configure(state="disabled")
-        content_text.pack(fill="x", padx=5, pady=5)
+        title_label = QLabel(title)
+        title_label.setFont(QFont("Arial", 14, QFont.Bold))
+        title_label.setStyleSheet("color: #FFA500;")
+        result_layout.addWidget(title_label)
 
-        # Delete Button
-        delete_button = ttk.Button(result_frame, text="Delete", command=lambda: self.delete_note(note_id, result_frame))
-        delete_button.pack(side="bottom", anchor="e", padx=5, pady=5)
+        escaped_content = escape(content)
+        content_text = QTextEdit()
+        content_text.setFont(QFont("Consolas", 12))
+        content_text.setText(escaped_content)
+        content_text.setReadOnly(True)
+        result_layout.addWidget(content_text)
+
+        delete_button = QPushButton("Delete")
+        delete_button.setFont(QFont("Arial", 8))
+        delete_button.setFixedSize(100, 40)
+        delete_button.setStyleSheet("""
+            QPushButton {
+                background-color: #FF4500;
+                color: white;
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #FF6347;
+            }
+            QPushButton:pressed {
+                background-color: #FF0000;
+            }
+        """)
+        delete_button.clicked.connect(lambda: self.delete_note(note_id, result_frame))
+
+        delete_button_layout = QHBoxLayout()
+        delete_button_layout.addStretch()
+        delete_button_layout.addWidget(delete_button)
+        result_layout.addLayout(delete_button_layout)
+
+        self.results_layout.addWidget(result_frame)
 
     def delete_note(self, note_id, result_frame):
-        confirm = messagebox.askyesno("Confirm Delete", "Are you sure you want to delete this note?")
-        if confirm:
+        confirm = QMessageBox.question(self, "Confirm Delete", "Are you sure you want to delete this note?")
+        if confirm == QMessageBox.Yes:
             cursor = self.conn.cursor()
             cursor.execute("DELETE FROM notes WHERE id=?", (note_id,))
             self.conn.commit()
-            messagebox.showinfo("Deleted", "Note deleted successfully!")
-            result_frame.destroy()
+            QMessageBox.information(self, "Deleted", "Note deleted successfully!")
+            result_frame.deleteLater()
 
+    def clear_content_frame(self):
+        for i in reversed(range(self.content_frame.count())):
+            widget = self.content_frame.itemAt(i).widget()
+            if widget:
+                widget.deleteLater()
 
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = NoteApp(root)
-    root.mainloop()
+    app = QApplication(sys.argv)
+    window = NoteApp()
+    window.show()
+    sys.exit(app.exec_())
