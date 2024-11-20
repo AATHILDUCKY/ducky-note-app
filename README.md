@@ -1,25 +1,31 @@
-Ducky Notes App Automation Script
-This repository contains a script to automate the setup and execution of the Ducky Notes App. The script ensures all dependencies, including PyQt5, are installed, activates a virtual environment, and runs the app effortlessly.
+# Ducky Notes App Automation Script
 
-Features
-Automated Dependency Management: Installs PyQt5 if not already installed.
-Virtual Environment Setup: Automatically creates and activates a Python virtual environment.
-System-Wide Access: Allows running the app from any directory after moving the script to /bin.
-Installation and Usage
-Step 1: Clone the Repository
-bash
-Copy code
+This repository contains a script to automate the setup and execution of the **Ducky Notes App**. The script ensures all dependencies, including `PyQt5`, are installed, activates a virtual environment, and runs the app effortlessly.
+
+## Features
+
+- **Automated Dependency Management**: Installs `PyQt5` if not already installed.
+- **Virtual Environment Setup**: Automatically creates and activates a Python virtual environment.
+- **System-Wide Access**: Allows running the app from any directory after moving the script to `/bin`.
+
+## Installation and Usage
+
+### Step 1: Clone the Repository
+
+```bash
 git clone <repository-url>
 cd <repository-name>
-Step 2: Create the Executable Script
-Create a new executable file:
-bash
-Copy code
+```
+
+### Step 2: Create the Executable Script
+
+```bash
 touch run_ducky_notes.sh
-Open the file and paste the following script:
-<details> <summary>Click to Copy the Script</summary>
-bash
-Copy code
+```
+
+Open the file and paste the following script
+
+```bash
 #!/bin/bash
 
 # Define the virtual environment directory and Python script
@@ -64,34 +70,29 @@ python "$SCRIPT_PATH"
 
 # Deactivate the virtual environment
 deactivate
-</details>
-Step 3: Make the Script Executable
-bash
-Copy code
+
+```
+
+
+### Step 3: Make the Script Executable
+
+```bash
 chmod +x run_ducky_notes.sh
-Step 4: Move the Script to /bin for System-Wide Access
-Copy the script to /bin:
-bash
-Copy code
+```
+
+### Step 4: Move the Script to ``/bin`` for System-Wide Access
+
+1. Copy the script to ``/bin`` :
+```bash
 sudo cp run_ducky_notes.sh /bin/ducky_notes
-Run the app from anywhere:
-bash
-Copy code
+```
+
+2. Run the app from anywhere :
+```bash
 ducky_notes
-Usage
-Once the setup is complete, you can run the Ducky Notes app from any location using the command:
-
-bash
-Copy code
-ducky_notes
-Troubleshooting
-Python Not Found: Ensure Python is installed and accessible via python or python3.
-Permission Denied: Ensure you use sudo when copying the file to /bin.
-Script Not Executing: Double-check that the script is marked as executable using chmod +x.
-Let me know if you need further adjustments! 😊
+```
 
 
+## Usage
 
-
-
-
+Once the setup is complete, you can run the Ducky Notes app from any location using the command
