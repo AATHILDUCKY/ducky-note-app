@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
-from html import escape
 import sqlite3
 
 
@@ -218,7 +217,6 @@ class NoteApp(QMainWindow):
             if all(any(kw in db_kw for db_kw in note_keywords_list) for kw in keywords_list):
                 self.display_result(note_id, title, content)
 
-    
     def display_result(self, note_id, title, content):
         result_frame = QFrame()
         result_frame.setStyleSheet("background-color: #2E2E2E; border: 1px solid #555555; padding: 10px;")
@@ -233,11 +231,31 @@ class NoteApp(QMainWindow):
         # Display the content directly as-is, ensuring it's in plain text format
         content_text = QTextEdit()
         content_text.setFont(QFont("Consolas", 12))
-        content_text.setPlainText(content)  # Display content as plain text
+        content_text.setPlainText(content)
         content_text.setReadOnly(True)
         result_layout.addWidget(content_text)
 
-        # Add a delete button
+        # Add edit and delete buttons
+        button_layout = QHBoxLayout()
+
+        edit_button = QPushButton("Edit")
+        edit_button.setFont(QFont("Arial", 8))
+        edit_button.setFixedSize(100, 40)
+        edit_button.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #64B5F6;
+            }
+            QPushButton:pressed {
+                background-color: #1976D2;
+            }
+        """)
+        edit_button.clicked.connect(lambda: self.toggle_edit_mode(edit_button, content_text, note_id))
+
         delete_button = QPushButton("Delete")
         delete_button.setFont(QFont("Arial", 8))
         delete_button.setFixedSize(100, 40)
@@ -254,26 +272,37 @@ class NoteApp(QMainWindow):
                 background-color: #FF0000;
             }
         """)
-        delete_button.clicked.connect(lambda: self.delete_note(note_id, result_frame))
-
-        delete_button_layout = QHBoxLayout()
-        delete_button_layout.addStretch()
-        delete_button_layout.addWidget(delete_button)
-        result_layout.addLayout(delete_button_layout)
+        delete_button.clicked.connect(lambda: self.delete_note(note_id))
+        button_layout.addWidget(edit_button)
+        button_layout.addWidget(delete_button)
+        result_layout.addLayout(button_layout)
 
         self.results_layout.addWidget(result_frame)
 
+    def toggle_edit_mode(self, edit_button, content_text, note_id):
+        if edit_button.text() == "Edit":
+            content_text.setReadOnly(False)
+            content_text.setStyleSheet("background-color: white; color: black; border: 2px solid #1976D2;")
+            edit_button.setText("Update")
+        else:
+            new_content = content_text.toPlainText().strip()
+            if new_content:
+                cursor = self.conn.cursor()
+                cursor.execute("UPDATE notes SET content = ? WHERE id = ?", (new_content, note_id))
+                self.conn.commit()
+                QMessageBox.information(self, "Success", "Note updated successfully!")
+                content_text.setReadOnly(True)
+                content_text.setStyleSheet("background-color: #2E2E2E; color: white; border: 1px solid gray;")
+                edit_button.setText("Edit")
 
-
-
-    def delete_note(self, note_id, result_frame):
-        confirm = QMessageBox.question(self, "Confirm Delete", "Are you sure you want to delete this note?")
+    def delete_note(self, note_id):
+        confirm = QMessageBox.question(self, "Confirm", "Are you sure you want to delete this note?")
         if confirm == QMessageBox.Yes:
             cursor = self.conn.cursor()
-            cursor.execute("DELETE FROM notes WHERE id=?", (note_id,))
+            cursor.execute("DELETE FROM notes WHERE id = ?", (note_id,))
             self.conn.commit()
-            QMessageBox.information(self, "Deleted", "Note deleted successfully!")
-            result_frame.deleteLater()
+            QMessageBox.information(self, "Success", "Note deleted successfully!")
+            self.search_notes()
 
     def clear_content_frame(self):
         for i in reversed(range(self.content_frame.count())):
@@ -290,6 +319,6 @@ class NoteApp(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = NoteApp()
-    window.show()
+    note_app = NoteApp()
+    note_app.show()
     sys.exit(app.exec_())
