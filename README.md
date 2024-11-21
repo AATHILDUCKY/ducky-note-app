@@ -28,49 +28,7 @@ Open the file and paste the following script
 ```bash
 #!/bin/bash
 
-# Define the virtual environment directory and Python script
-ENV_DIR="env"
-SCRIPT_PATH="/home/ducky/Desktop/ducky-note-app/ducky_notes.py"
-
-# Function to check if PyQt is installed
-check_and_install_pyqt() {
-    # Activate the virtual environment
-    source "$ENV_DIR/bin/activate"
-    
-    # Check if PyQt5 is installed
-    if ! python -c "import PyQt5" &> /dev/null; then
-        echo "PyQt5 not found. Installing..."
-        pip install PyQt5
-        
-        # Check if the installation succeeded
-        if python -c "import PyQt5" &> /dev/null; then
-            echo "PyQt5 installed successfully."
-        else
-            echo "Failed to install PyQt5. Exiting..."
-            deactivate
-            exit 1
-        fi
-    else
-        echo "PyQt5 is already installed."
-    fi
-}
-
-# Ensure the virtual environment exists
-if [ ! -d "$ENV_DIR" ]; then
-    echo "Virtual environment not found. Creating one..."
-    python -m venv "$ENV_DIR"
-fi
-
-# Check and install PyQt5
-check_and_install_pyqt
-
-# Run the Python script
-echo "Running $SCRIPT_PATH..."
-python "$SCRIPT_PATH"
-
-# Deactivate the virtual environment
-deactivate
-
+python /home/ducky/Desktop/ducky-note-app/ducky_notes.py"
 ```
 
 
